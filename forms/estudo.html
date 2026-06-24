@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Estudo — NEDD/UFF</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+</head>
+<body class="form-page">
+<header class="site-header">
+  <a href="../index.html" class="logo">
+    <div class="logo-icon">N</div>
+    <div class="logo-text"><strong>NEDD / UFF</strong><span>Plataforma de Pesquisa</span></div>
+  </a>
+  <nav><a href="../index.html">← Voltar</a></nav>
+</header>
+<div class="form-container" style="max-width:640px">
+  <div class="form-title">
+    <h1>📁 Cadastro de Estudo</h1>
+    <p>Registro de protocolos e projetos de pesquisa ativos no NEDD</p>
+  </div>
+  <div id="alertBox"></div>
+  <form id="estudoForm" novalidate>
+    <div class="form-card">
+      <div class="form-section-title">Dados do Estudo</div>
+      <div class="form-section-body">
+        <div class="form-grid full">
+          <div class="form-group">
+            <label>Título do Estudo <span class="required">*</span></label>
+            <input type="text" name="titulo" placeholder="Título completo do projeto ou protocolo" required>
+          </div>
+          <div class="form-group">
+            <label>Tipo de Estudo <span class="required">*</span></label>
+            <select name="tipo" required>
+              <option value="">Selecione...</option>
+              <option>Ensaio clínico</option><option>Estudo observacional prospectivo</option>
+              <option>Estudo observacional retrospectivo</option><option>Estudo transversal</option>
+              <option>Estudo de caso-controle</option><option>Revisão sistemática / Metanálise</option>
+              <option>Relato / Série de casos</option><option>Estudo de validação de instrumento</option><option>Outro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Pesquisador Responsável <span class="required">*</span></label>
+            <select name="responsavel_id" id="selectPesq" required><option value="">Selecione...</option></select>
+          </div>
+          <div class="form-group">
+            <label>Número CAAE (CEP)</label>
+            <input type="text" name="caae" placeholder="Ex: 12345678.9.0000.5243">
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:14px">
+          <div class="form-group">
+            <label>Data de Início</label>
+            <input type="date" name="data_inicio">
+          </div>
+          <div class="form-group">
+            <label>Previsão de Término</label>
+            <input type="date" name="data_prevista_fim">
+          </div>
+          <div class="form-group">
+            <label>N previsto de participantes</label>
+            <input type="number" name="n_previsto" min="1" placeholder="Ex: 50">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select name="status">
+              <option>Em andamento</option><option>Em coleta de dados</option>
+              <option>Em análise</option><option>Concluído</option><option>Suspenso</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid full" style="margin-top:14px">
+          <div class="form-group">
+            <label>Objetivo Principal</label>
+            <textarea name="objetivo" placeholder="Descreva o objetivo principal do estudo..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Critérios de Inclusão</label>
+            <textarea name="criterios_inclusao" placeholder="Liste os critérios..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Critérios de Exclusão</label>
+            <textarea name="criterios_exclusao" placeholder="Liste os critérios..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Formulários utilizados neste estudo</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item"><input type="checkbox" name="formularios" value="anamnese"> Anamnese Fonoaudiológica</label>
+              <label class="checkbox-item"><input type="checkbox" name="formularios" value="degluticao"> Avaliação Clínica da Deglutição</label>
+              <label class="checkbox-item"><input type="checkbox" name="formularios" value="swal_qol"> SWAL-QOL</label>
+              <label class="checkbox-item"><input type="checkbox" name="formularios" value="follow_up"> Seguimento / Reavaliação</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="submit-zone">
+      <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Cadastrar Estudo</button>
+    </div>
+  </form>
+
+  <div class="form-card" style="margin-top:24px">
+    <div class="card-header"><h2>Estudos Cadastrados</h2></div>
+    <div class="card-body" style="padding:0">
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead><tr><th>Título</th><th>Tipo</th><th>Status</th><th>N previsto</th></tr></thead>
+          <tbody id="estudoBody"><tr class="empty-row"><td colspan="4">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="site-footer">NEDD/UFF — Plataforma de Pesquisa Científica</footer>
+<script src="../js/app.js"></script>
+<script>
+  async function loadSelects() {
+    try {
+      const { data } = await db().from('pesquisadores').select('id, nome, nivel').order('nome');
+      const sel = document.getElementById('selectPesq');
+      (data || []).forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = `${p.nome} (${p.nivel})`; sel.appendChild(o); });
+    } catch(e) {}
+  }
+  async function loadEstudos() {
+    try {
+      const { data } = await db().from('estudos').select('*').order('created_at', { ascending: false });
+      const tbody = document.getElementById('estudoBody');
+      if (!data || !data.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Nenhum estudo cadastrado ainda.</td></tr>'; return; }
+      const colors = { 'Em andamento': 'badge-primary', 'Em coleta de dados': 'badge-warning', 'Concluído': 'badge-success', 'Suspenso': 'badge-danger' };
+      tbody.innerHTML = data.map(e => `<tr>
+        <td><strong>${e.titulo}</strong></td>
+        <td style="font-size:12px">${e.tipo || '—'}</td>
+        <td><span class="badge ${colors[e.status] || 'badge-muted'}">${e.status || '—'}</span></td>
+        <td>${e.n_previsto || '—'}</td>
+      </tr>`).join('');
+    } catch(e) { document.getElementById('estudoBody').innerHTML = '<tr class="empty-row"><td colspan="4">Erro ao carregar.</td></tr>'; }
+  }
+  loadSelects(); loadEstudos();
+  document.getElementById('estudoForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const missing = validateRequired(e.target);
+    if (missing.length) { document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">Preencha: <strong>${missing.join(', ')}</strong></div>`; return; }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    const data = collectForm(e.target);
+    if (Array.isArray(data.formularios)) data.formularios = data.formularios.join('|');
+    try {
+      const { error } = await db().from('estudos').insert([data]);
+      if (error) throw error;
+      document.getElementById('alertBox').innerHTML = `<div class="alert alert-success">✅ Estudo cadastrado!</div>`;
+      e.target.reset(); loadEstudos(); toast('Estudo cadastrado!');
+    } catch(err) { document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">❌ Erro: ${err.message}</div>`; }
+    finally { btn.disabled = false; btn.textContent = 'Cadastrar Estudo'; }
+  });
+</script>
+</body>
+</html>

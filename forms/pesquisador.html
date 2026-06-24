@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Pesquisador — NEDD/UFF</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+</head>
+<body class="form-page">
+<header class="site-header">
+  <a href="../index.html" class="logo">
+    <div class="logo-icon">N</div>
+    <div class="logo-text"><strong>NEDD / UFF</strong><span>Plataforma de Pesquisa</span></div>
+  </a>
+  <nav><a href="../index.html">← Voltar</a></nav>
+</header>
+<div class="form-container" style="max-width:560px">
+  <div class="form-title">
+    <h1>👤 Cadastro de Pesquisador</h1>
+    <p>Registro de membros vinculados ao NEDD/UFF</p>
+  </div>
+  <div id="alertBox"></div>
+  <form id="pesqForm" novalidate>
+    <div class="form-card">
+      <div class="form-section-title">Dados do Pesquisador</div>
+      <div class="form-section-body">
+        <div class="form-grid full">
+          <div class="form-group">
+            <label>Nome Completo <span class="required">*</span></label>
+            <input type="text" name="nome" placeholder="Nome completo" required>
+          </div>
+          <div class="form-group">
+            <label>E-mail <span class="required">*</span></label>
+            <input type="email" name="email" placeholder="usuario@id.uff.br" required>
+          </div>
+          <div class="form-group">
+            <label>Nível de Formação <span class="required">*</span></label>
+            <select name="nivel" required>
+              <option value="">Selecione...</option>
+              <option>Graduação — TCC</option><option>Iniciação Científica (IC)</option>
+              <option>Mestrado</option><option>Doutorado</option><option>Pós-Doutorado</option>
+              <option>Docente / Orientador</option><option>Colaborador externo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Área de Atuação</label>
+            <select name="area">
+              <option value="">Selecione...</option>
+              <option>Disfagia</option><option>Motricidade Orofacial</option><option>Voz</option>
+              <option>Linguagem</option><option>Audiologia</option><option>Multiprofissional</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Lattes (URL)</label>
+            <input type="text" name="lattes_url" placeholder="http://lattes.cnpq.br/...">
+          </div>
+          <div class="form-group">
+            <label>Orientador(a)</label>
+            <input type="text" name="orientador" placeholder="Nome do(a) orientador(a)">
+          </div>
+          <div class="form-group">
+            <label>Ativo no NEDD?</label>
+            <select name="ativo">
+              <option value="true">Sim — em atividade</option>
+              <option value="false">Não — egresso</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="submit-zone">
+      <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Cadastrar Pesquisador</button>
+    </div>
+  </form>
+
+  <div class="form-card" style="margin-top:24px">
+    <div class="card-header"><h2>Pesquisadores Cadastrados</h2></div>
+    <div class="card-body" style="padding:0">
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead><tr><th>Nome</th><th>Nível</th><th>Área</th><th>Status</th></tr></thead>
+          <tbody id="pesqBody"><tr class="empty-row"><td colspan="4">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="site-footer">NEDD/UFF — Plataforma de Pesquisa Científica</footer>
+<script src="../js/app.js"></script>
+<script>
+  async function loadPesq() {
+    try {
+      const { data } = await db().from('pesquisadores').select('*').order('nome');
+      const tbody = document.getElementById('pesqBody');
+      if (!data || !data.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Nenhum pesquisador cadastrado ainda.</td></tr>'; return; }
+      tbody.innerHTML = data.map(p => `<tr>
+        <td><strong>${p.nome}</strong><br><small style="color:var(--text-muted)">${p.email}</small></td>
+        <td>${p.nivel || '—'}</td><td>${p.area || '—'}</td>
+        <td><span class="badge ${p.ativo ? 'badge-success' : 'badge-muted'}">${p.ativo ? 'Ativo' : 'Egresso'}</span></td>
+      </tr>`).join('');
+    } catch(e) { document.getElementById('pesqBody').innerHTML = '<tr class="empty-row"><td colspan="4">Erro ao carregar.</td></tr>'; }
+  }
+  loadPesq();
+  document.getElementById('pesqForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const missing = validateRequired(e.target);
+    if (missing.length) { document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">Preencha: <strong>${missing.join(', ')}</strong></div>`; return; }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    const data = collectForm(e.target);
+    data.ativo = data.ativo === 'true';
+    try {
+      const { error } = await db().from('pesquisadores').insert([data]);
+      if (error) throw error;
+      document.getElementById('alertBox').innerHTML = `<div class="alert alert-success">✅ Pesquisador cadastrado!</div>`;
+      e.target.reset(); loadPesq(); toast('Pesquisador cadastrado!');
+    } catch(err) { document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">❌ Erro: ${err.message}</div>`; }
+    finally { btn.disabled = false; btn.textContent = 'Cadastrar Pesquisador'; }
+  });
+</script>
+</body>
+</html>

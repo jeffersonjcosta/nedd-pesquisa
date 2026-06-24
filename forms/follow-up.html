@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seguimento / Reavaliação — NEDD/UFF</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+</head>
+<body class="form-page">
+<header class="site-header">
+  <a href="../index.html" class="logo">
+    <div class="logo-icon">N</div>
+    <div class="logo-text"><strong>NEDD / UFF</strong><span>Plataforma de Pesquisa</span></div>
+  </a>
+  <nav><a href="../index.html">← Voltar</a></nav>
+</header>
+<div class="form-container">
+  <div class="form-title">
+    <h1>🔄 Seguimento / Reavaliação</h1>
+    <p>Registro de evolução clínica e resposta à intervenção fonoaudiológica</p>
+    <div class="progress-bar"><div class="progress-fill" id="progressBar" style="width:0%"></div></div>
+  </div>
+  <div id="alertBox"></div>
+  <form id="followForm" novalidate>
+
+    <div class="form-card">
+      <div class="form-section-title">1. Identificação</div>
+      <div class="form-section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Código do Participante <span class="required">*</span></label>
+            <input type="text" name="codigo_participante" placeholder="NEDD-2026-XXXXX" required>
+          </div>
+          <div class="form-group">
+            <label>Data da Reavaliação <span class="required">*</span></label>
+            <input type="date" name="data_avaliacao" id="dataAval" required>
+          </div>
+          <div class="form-group">
+            <label>Pesquisador</label>
+            <select name="pesquisador_id" id="selectPesq"><option value="">Selecione...</option></select>
+          </div>
+          <div class="form-group">
+            <label>Ponto de seguimento <span class="required">*</span></label>
+            <select name="ponto_seguimento" required>
+              <option value="">Selecione...</option>
+              <option>T1 — 1 semana</option><option>T2 — 1 mês</option><option>T3 — 3 meses</option>
+              <option>T4 — 6 meses</option><option>T5 — 12 meses</option>
+              <option>Alta fonoaudiológica</option><option>Outro</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title secondary">2. Evolução Clínica</div>
+      <div class="form-section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Evolução geral em relação à avaliação anterior</label>
+            <select name="evolucao_geral">
+              <option value="">Selecione...</option>
+              <option>Melhora significativa</option><option>Melhora discreta</option>
+              <option>Sem alteração</option><option>Piora discreta</option><option>Piora significativa</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Via de alimentação atual</label>
+            <select name="via_alimentacao_atual">
+              <option value="">Selecione...</option>
+              <option>Via oral exclusiva</option><option>Via oral com restrições</option>
+              <option>Via oral + enteral</option><option>Sonda nasoentérica (SNE)</option>
+              <option>Gastrostomia (GTT)</option><option>Parenteral</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Mudança na via de alimentação?</label>
+            <select name="mudanca_via">
+              <option value="">Selecione...</option>
+              <option>Sim — progressão (melhora)</option><option>Sim — regressão (piora)</option>
+              <option>Não houve mudança</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Consistência liberada para líquidos (IDDSI)</label>
+            <select name="consistencia_liquidos">
+              <option value="">Sem alteração / Não avaliado</option>
+              <option>0 — Fino (água)</option><option>1 — Levemente espessado</option>
+              <option>2 — Néctar</option><option>3 — Mel</option>
+              <option>4 — Pudim</option><option>Não aceita líquidos</option>
+            </select>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <p style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Sintomas presentes nesta avaliação</p>
+        <div class="form-grid">
+          <div class="checkbox-group">
+            <label class="checkbox-item"><input type="checkbox" name="sintomas_atuais" value="tosse"> Tosse durante/após refeição</label>
+            <label class="checkbox-item"><input type="checkbox" name="sintomas_atuais" value="engasgo"> Engasgo</label>
+            <label class="checkbox-item"><input type="checkbox" name="sintomas_atuais" value="voz_molhada"> Voz molhada</label>
+            <label class="checkbox-item"><input type="checkbox" name="sintomas_atuais" value="regurgitacao"> Regurgitação</label>
+          </div>
+          <div class="checkbox-group">
+            <label class="checkbox-item"><input type="checkbox" name="sintomas_atuais" value="fadiga"> Fadiga nas refeições</label>
+            <label class="checkbox-item"><input type="checkbox" name="sintomas_atuais" value="perda_peso"> Perda de peso</label>
+            <label class="checkbox-item"><input type="checkbox" name="sintomas_atuais" value="pneumonia"> Pneumonia (novo episódio)</label>
+            <label class="checkbox-item"><input type="checkbox" name="sintomas_atuais" value="assintomatico"> Assintomático</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title">3. Intervenção Fonoaudiológica</div>
+      <div class="form-section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Realizou terapia fonoaudiológica?</label>
+            <select name="realizou_terapia">
+              <option value="">Selecione...</option>
+              <option>Sim — regularmente</option><option>Sim — irregularmente</option>
+              <option>Não realizou</option><option>Alta fonoaudiológica anterior</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Número de sessões desde a última avaliação</label>
+            <input type="number" name="n_sessoes" min="0" placeholder="Ex: 8">
+          </div>
+        </div>
+        <div class="form-grid full" style="margin-top:14px">
+          <div class="form-group">
+            <label>Técnicas / Estratégias utilizadas</label>
+            <textarea name="tecnicas" placeholder="Ex: Manobra de Mendelsohn, exercícios de força lingual..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Conduta para o próximo período</label>
+            <textarea name="conduta_proxima" placeholder="Manutenção, progressão de consistência, alta, encaminhamento..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Observações Gerais</label>
+            <textarea name="observacoes" placeholder="Informações clínicas ou contextuais relevantes..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-zone">
+      <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Salvar Seguimento</button>
+      <p>Este registro será vinculado ao código do participante informado.</p>
+    </div>
+  </form>
+</div>
+<footer class="site-footer">NEDD/UFF — Plataforma de Pesquisa Científica</footer>
+<script src="../js/app.js"></script>
+<script>
+  document.getElementById('dataAval').value = today();
+  async function loadSelects() {
+    try {
+      const { data } = await db().from('pesquisadores').select('id, nome, nivel').order('nome');
+      const sel = document.getElementById('selectPesq');
+      (data || []).forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = `${p.nome} (${p.nivel})`; sel.appendChild(o); });
+    } catch(e) {}
+  }
+  loadSelects();
+  const form = document.getElementById('followForm');
+  form.addEventListener('input', () => updateProgress(form, document.getElementById('progressBar')));
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const missing = validateRequired(form);
+    if (missing.length) { document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">Preencha: <strong>${missing.join(', ')}</strong></div>`; window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    const data = collectForm(form);
+    if (Array.isArray(data.sintomas_atuais)) data.sintomas_atuais = data.sintomas_atuais.join('|');
+    try {
+      const { error } = await db().from('follow_up').insert([data]);
+      if (error) throw error;
+      document.getElementById('alertBox').innerHTML = `<div class="alert alert-success">✅ Seguimento registrado!</div>`;
+      form.reset(); document.getElementById('dataAval').value = today();
+      window.scrollTo({ top: 0, behavior: 'smooth' }); toast('Seguimento salvo!');
+    } catch(err) { document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">❌ Erro: ${err.message}</div>`; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    finally { btn.disabled = false; btn.textContent = 'Salvar Seguimento'; }
+  });
+</script>
+</body>
+</html>

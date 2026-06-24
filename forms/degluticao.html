@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avaliação Clínica da Deglutição — NEDD/UFF</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+</head>
+<body class="form-page">
+<header class="site-header">
+  <a href="../index.html" class="logo">
+    <div class="logo-icon">N</div>
+    <div class="logo-text"><strong>NEDD / UFF</strong><span>Plataforma de Pesquisa</span></div>
+  </a>
+  <nav><a href="../index.html">← Voltar</a></nav>
+</header>
+<div class="form-container">
+  <div class="form-title">
+    <h1>🔬 Avaliação Clínica da Deglutição</h1>
+    <p>Estruturas orofaciais, oferta alimentar e sinais clínicos</p>
+    <div class="progress-bar"><div class="progress-fill" id="progressBar" style="width:0%"></div></div>
+  </div>
+  <div id="alertBox"></div>
+  <form id="degluticaoForm" novalidate>
+
+    <div class="form-card">
+      <div class="form-section-title">1. Identificação</div>
+      <div class="form-section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Código do Participante <span class="required">*</span></label>
+            <input type="text" name="codigo_participante" placeholder="NEDD-2026-XXXXX" required>
+          </div>
+          <div class="form-group">
+            <label>Data da Avaliação <span class="required">*</span></label>
+            <input type="date" name="data_avaliacao" id="dataAval" required>
+          </div>
+          <div class="form-group">
+            <label>Pesquisador Responsável</label>
+            <select name="pesquisador_id" id="selectPesq"><option value="">Selecione...</option></select>
+          </div>
+          <div class="form-group">
+            <label>Nível de Consciência</label>
+            <select name="nivel_consciencia">
+              <option value="">Selecione...</option>
+              <option>Alerta (15 Glasgow)</option><option>Sonolento mas desperta</option>
+              <option>Confuso / Desorientado</option><option>Torporoso</option><option>Em coma</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title">2. Estruturas Orofaciais</div>
+      <div class="form-section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Lábios</label>
+            <select name="labios">
+              <option value="">Selecione...</option>
+              <option>Dentro da normalidade</option><option>Paresia/Paralisia unilateral D</option>
+              <option>Paresia/Paralisia unilateral E</option><option>Paresia/Paralisia bilateral</option>
+              <option>Redução de força</option><option>Outro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Língua — Mobilidade</label>
+            <select name="lingua_mobilidade">
+              <option value="">Selecione...</option>
+              <option>Dentro da normalidade</option><option>Redução de amplitude</option>
+              <option>Redução de força</option><option>Fasciculações</option><option>Paralisia</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Palato Mole</label>
+            <select name="palato">
+              <option value="">Selecione...</option>
+              <option>Dentro da normalidade</option><option>Hipomobilidade unilateral D</option>
+              <option>Hipomobilidade unilateral E</option><option>Hipomobilidade bilateral</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Dentição</label>
+            <select name="denticao">
+              <option value="">Selecione...</option>
+              <option>Dentição própria íntegra</option><option>Prótese dentária total</option>
+              <option>Prótese dentária parcial</option><option>Edêntulo parcial</option><option>Edêntulo total</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Reflexo de Gag</label>
+            <select name="reflexo_gag">
+              <option value="">Selecione...</option>
+              <option>Presente e simétrico</option><option>Diminuído</option>
+              <option>Ausente</option><option>Exacerbado</option><option>Não testado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Elevação Laríngea</label>
+            <select name="elevacao_laringea">
+              <option value="">Selecione...</option>
+              <option>Presente e completa</option><option>Reduzida</option><option>Ausente</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title secondary">3. Deglutição de Saliva</div>
+      <div class="form-section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Deglutição de Saliva</label>
+            <select name="degluticao_saliva">
+              <option value="">Selecione...</option>
+              <option>Deglute sem alteração</option><option>Deglute com dificuldade</option>
+              <option>Não consegue deglutir</option><option>Não testado (sialorréia intensa)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Voz antes da oferta</label>
+            <select name="voz_antes">
+              <option value="">Selecione...</option>
+              <option>Normal</option><option>Rouca</option><option>Molhada / Gorgolhante</option>
+              <option>Fraca / Hipofônica</option><option>Afônica</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>SpO₂ antes da oferta (%)</label>
+            <input type="number" name="spo2_antes" min="50" max="100" placeholder="Ex: 98">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title secondary">4. Oferta Alimentar por Consistência (IDDSI)</div>
+      <div class="form-section-body">
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="background:var(--bg)">
+                <th style="padding:10px 12px;text-align:left;border-bottom:2px solid var(--border);width:30%">Consistência</th>
+                <th style="padding:10px 12px;text-align:left;border-bottom:2px solid var(--border)">Resultado</th>
+                <th style="padding:10px 12px;text-align:left;border-bottom:2px solid var(--border);width:28%">Observação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border)"><strong>IDDSI 0</strong> — Água</td>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border)">
+                  <select name="iddsi0_resultado" style="width:100%"><option value="">Não testado</option><option>Seguro — sem sinais clínicos</option><option>Risco — tosse imediata</option><option>Risco — tosse tardia</option><option>Risco — voz molhada</option><option>Inseguro — interrompido</option></select>
+                </td>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border)"><input type="text" name="iddsi0_obs" placeholder="Obs..."></td>
+              </tr>
+              <tr>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border)"><strong>IDDSI 2</strong> — Néctar</td>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border)">
+                  <select name="iddsi2_resultado" style="width:100%"><option value="">Não testado</option><option>Seguro — sem sinais clínicos</option><option>Risco — tosse imediata</option><option>Risco — tosse tardia</option><option>Risco — voz molhada</option><option>Inseguro — interrompido</option></select>
+                </td>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border)"><input type="text" name="iddsi2_obs" placeholder="Obs..."></td>
+              </tr>
+              <tr>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border)"><strong>IDDSI 3</strong> — Mel</td>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border)">
+                  <select name="iddsi3_resultado" style="width:100%"><option value="">Não testado</option><option>Seguro — sem sinais clínicos</option><option>Risco — tosse imediata</option><option>Risco — tosse tardia</option><option>Risco — voz molhada</option><option>Inseguro — interrompido</option></select>
+                </td>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border)"><input type="text" name="iddsi3_obs" placeholder="Obs..."></td>
+              </tr>
+              <tr>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border)"><strong>IDDSI 4</strong> — Pudim</td>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border)">
+                  <select name="iddsi4_resultado" style="width:100%"><option value="">Não testado</option><option>Seguro — sem sinais clínicos</option><option>Risco — tosse imediata</option><option>Risco — tosse tardia</option><option>Risco — voz molhada</option><option>Inseguro — interrompido</option></select>
+                </td>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border)"><input type="text" name="iddsi4_obs" placeholder="Obs..."></td>
+              </tr>
+              <tr>
+                <td style="padding:10px 12px"><strong>IDDSI 6</strong> — Macio</td>
+                <td style="padding:10px 12px">
+                  <select name="iddsi6_resultado" style="width:100%"><option value="">Não testado</option><option>Seguro — sem sinais clínicos</option><option>Risco — tosse imediata</option><option>Risco — tosse tardia</option><option>Risco — voz molhada</option><option>Inseguro — interrompido</option></select>
+                </td>
+                <td style="padding:10px 12px"><input type="text" name="iddsi6_obs" placeholder="Obs..."></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="form-grid" style="margin-top:16px">
+          <div class="form-group">
+            <label>SpO₂ após oferta (%)</label>
+            <input type="number" name="spo2_apos" min="50" max="100" placeholder="Ex: 95">
+          </div>
+          <div class="form-group">
+            <label>Voz após oferta</label>
+            <select name="voz_apos">
+              <option value="">Selecione...</option>
+              <option>Inalterada</option><option>Rouca</option><option>Molhada / Gorgolhante</option><option>Não avaliável</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title">5. Conclusão</div>
+      <div class="form-section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Classificação da Disfagia</label>
+            <select name="classificacao_disfagia">
+              <option value="">Selecione...</option>
+              <option>Sem disfagia</option><option>Disfagia leve</option><option>Disfagia moderada</option>
+              <option>Disfagia grave</option><option>Disfagia gravíssima</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fase predominante afetada</label>
+            <select name="fase_afetada">
+              <option value="">Selecione...</option>
+              <option>Oral preparatória</option><option>Oral de transporte</option>
+              <option>Faríngea</option><option>Esofágica</option>
+              <option>Mista (oral + faríngea)</option><option>Não determinado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Via de alimentação recomendada</label>
+            <select name="via_recomendada">
+              <option value="">Selecione...</option>
+              <option>Via oral plena — sem restrição</option><option>Via oral com adaptação de consistência</option>
+              <option>Via oral com supervisão</option><option>Via oral restrita (prazer/hidratação)</option>
+              <option>Suspensão da via oral</option><option>Aguardar exame instrumental</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Encaminhamento</label>
+            <select name="encaminhamento">
+              <option value="">Selecione...</option>
+              <option>Nenhum</option><option>Videofluoroscopia</option><option>Nasofibroscopia (FEES)</option>
+              <option>Avaliação nutricional</option><option>Fonoterapia</option><option>Avaliação médica urgente</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid full" style="margin-top:14px">
+          <div class="form-group">
+            <label>Recomendações e Condutas</label>
+            <textarea name="recomendacoes" placeholder="Estratégias compensatórias, posturas, adaptações..." style="min-height:100px"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Observações Gerais</label>
+            <textarea name="observacoes" placeholder="Outras informações relevantes..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-zone">
+      <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Salvar Avaliação</button>
+      <p>Verifique o código do participante antes de enviar.</p>
+    </div>
+  </form>
+</div>
+<footer class="site-footer">NEDD/UFF — Plataforma de Pesquisa Científica</footer>
+<script src="../js/app.js"></script>
+<script>
+  document.getElementById('dataAval').value = today();
+  async function loadSelects() {
+    try {
+      const { data } = await db().from('pesquisadores').select('id, nome, nivel').order('nome');
+      const sel = document.getElementById('selectPesq');
+      (data || []).forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = `${p.nome} (${p.nivel})`; sel.appendChild(o); });
+    } catch(e) {}
+  }
+  loadSelects();
+  const form = document.getElementById('degluticaoForm');
+  form.addEventListener('input', () => updateProgress(form, document.getElementById('progressBar')));
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const missing = validateRequired(form);
+    if (missing.length) { document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">Preencha: <strong>${missing.join(', ')}</strong></div>`; window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    try {
+      const { error } = await db().from('avaliacao_degluticao').insert([collectForm(form)]);
+      if (error) throw error;
+      document.getElementById('alertBox').innerHTML = `<div class="alert alert-success">✅ Avaliação salva!</div>`;
+      form.reset(); document.getElementById('dataAval').value = today();
+      window.scrollTo({ top: 0, behavior: 'smooth' }); toast('Avaliação registrada!');
+    } catch(err) { document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">❌ Erro: ${err.message}</div>`; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    finally { btn.disabled = false; btn.textContent = 'Salvar Avaliação'; }
+  });
+</script>
+</body>
+</html>

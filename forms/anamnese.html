@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anamnese Fonoaudiológica — NEDD/UFF</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+</head>
+<body class="form-page">
+<header class="site-header">
+  <a href="../index.html" class="logo">
+    <div class="logo-icon">N</div>
+    <div class="logo-text"><strong>NEDD / UFF</strong><span>Plataforma de Pesquisa</span></div>
+  </a>
+  <nav><a href="../index.html">← Voltar</a></nav>
+</header>
+<div class="form-container">
+  <div class="form-title">
+    <h1>📋 Anamnese Fonoaudiológica</h1>
+    <p>Histórico clínico e sintomas de disfagia — preencha com o código do participante</p>
+    <div class="progress-bar"><div class="progress-fill" id="progressBar" style="width:0%"></div></div>
+  </div>
+  <div id="alertBox"></div>
+  <form id="anamneseForm" novalidate>
+
+    <div class="form-card">
+      <div class="form-section-title">1. Identificação</div>
+      <div class="form-section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Código do Participante <span class="required">*</span></label>
+            <div style="display:flex;gap:8px">
+              <input type="text" name="codigo_participante" id="codPart" placeholder="NEDD-2026-XXXXX" required>
+              <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('codPart').value=generateCode()">Gerar</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Data da Avaliação <span class="required">*</span></label>
+            <input type="date" name="data_avaliacao" id="dataAval" required>
+          </div>
+          <div class="form-group">
+            <label>Pesquisador Responsável</label>
+            <select name="pesquisador_id" id="selectPesq"><option value="">Selecione...</option></select>
+          </div>
+          <div class="form-group">
+            <label>Estudo / Protocolo</label>
+            <select name="estudo_id" id="selectEstudo"><option value="">Selecione...</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title">2. Dados Sociodemográficos</div>
+      <div class="form-section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Idade (anos) <span class="required">*</span></label>
+            <input type="number" name="idade" min="0" max="120" placeholder="Ex: 65" required>
+          </div>
+          <div class="form-group">
+            <label>Sexo <span class="required">*</span></label>
+            <select name="sexo" required>
+              <option value="">Selecione...</option>
+              <option>Feminino</option><option>Masculino</option><option>Outro / Não informado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Escolaridade</label>
+            <select name="escolaridade">
+              <option value="">Selecione...</option>
+              <option>Analfabeto</option><option>Fundamental incompleto</option><option>Fundamental completo</option>
+              <option>Médio incompleto</option><option>Médio completo</option>
+              <option>Superior incompleto</option><option>Superior completo</option><option>Pós-graduação</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Município de Residência</label>
+            <input type="text" name="municipio" placeholder="Ex: Niterói">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title">3. História Clínica</div>
+      <div class="form-section-body">
+        <div class="form-grid full">
+          <div class="form-group">
+            <label>Diagnóstico Principal</label>
+            <input type="text" name="diagnostico_principal" placeholder="Ex: AVC isquêmico, Doença de Parkinson...">
+          </div>
+          <div class="form-group">
+            <label>Comorbidades</label>
+            <input type="text" name="comorbidades" placeholder="Separe por vírgula: HAS, DM2, ICC...">
+          </div>
+          <div class="form-group">
+            <label>Medicamentos em uso</label>
+            <textarea name="medicamentos" placeholder="Liste os medicamentos e doses principais..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Queixa Principal do Paciente/Familiar</label>
+            <textarea name="queixa_principal" placeholder="Descreva com as palavras do paciente ou familiar..." style="min-height:100px"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Início dos Sintomas de Deglutição</label>
+            <select name="inicio_sintomas">
+              <option value="">Selecione...</option>
+              <option>Menos de 1 semana</option><option>1 a 4 semanas</option><option>1 a 3 meses</option>
+              <option>3 a 6 meses</option><option>6 a 12 meses</option><option>Mais de 1 ano</option>
+              <option>Desde o nascimento / Congênito</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title secondary">4. Sintomas de Disfagia</div>
+      <div class="form-section-body">
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Marque todos os sintomas relatados</p>
+        <div class="form-grid">
+          <div>
+            <p style="font-size:12px;font-weight:700;margin-bottom:10px;text-transform:uppercase;color:var(--text-muted)">Durante a refeição</p>
+            <div class="checkbox-group">
+              <label class="checkbox-item"><input type="checkbox" name="sintomas" value="tosse_durante"> Tosse durante a refeição</label>
+              <label class="checkbox-item"><input type="checkbox" name="sintomas" value="tosse_apos"> Tosse após a refeição</label>
+              <label class="checkbox-item"><input type="checkbox" name="sintomas" value="engasgo"> Engasgo / Sufocamento</label>
+              <label class="checkbox-item"><input type="checkbox" name="sintomas" value="regurgitacao"> Regurgitação nasal</label>
+              <label class="checkbox-item"><input type="checkbox" name="sintomas" value="voz_molhada"> Voz molhada / "borbulhante"</label>
+              <label class="checkbox-item"><input type="checkbox" name="sintomas" value="dor_deglutir"> Dor ao deglutir</label>
+            </div>
+          </div>
+          <div>
+            <p style="font-size:12px;font-weight:700;margin-bottom:10px;text-transform:uppercase;color:var(--text-muted)">Outros sintomas</p>
+            <div class="checkbox-group">
+              <label class="checkbox-item"><input type="checkbox" name="sintomas" value="dificuldade_mastigacao"> Dificuldade de mastigação</label>
+              <label class="checkbox-item"><input type="checkbox" name="sintomas" value="salivacao_excessiva"> Salivação excessiva / Babação</label>
+              <label class="checkbox-item"><input type="checkbox" name="sintomas" value="perda_peso"> Perda de peso recente</label>
+              <label class="checkbox-item"><input type="checkbox" name="sintomas" value="fadiga_refeicao"> Fadiga durante a refeição</label>
+              <label class="checkbox-item"><input type="checkbox" name="sintomas" value="residuo_oral"> Resíduo alimentar na boca</label>
+              <label class="checkbox-item"><input type="checkbox" name="sintomas" value="pneumonia_recente"> Pneumonia recente (&lt; 3 meses)</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title secondary">5. Alimentação Atual</div>
+      <div class="form-section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Via de Alimentação Principal</label>
+            <select name="via_alimentacao">
+              <option value="">Selecione...</option>
+              <option>Via oral exclusiva</option><option>Via oral com restrições</option>
+              <option>Via oral + suplementação enteral</option><option>Sonda nasoentérica (SNE)</option>
+              <option>Gastrostomia (GTT)</option><option>Nutrição parenteral</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tempo médio de refeição</label>
+            <select name="tempo_refeicao">
+              <option value="">Selecione...</option>
+              <option>Menos de 20 min</option><option>20 a 30 min</option>
+              <option>30 a 45 min</option><option>Mais de 45 min</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Consistência Sólidos (IDDSI)</label>
+            <select name="consistencia_solidos">
+              <option value="">Selecione...</option>
+              <option>7 — Normal (sem restrição)</option><option>6 — Macio e úmido</option>
+              <option>5 — Picado e úmido</option><option>4 — Pastoso</option><option>Não aceita sólidos</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Consistência Líquidos (IDDSI)</label>
+            <select name="consistencia_liquidos">
+              <option value="">Selecione...</option>
+              <option>0 — Fino (água)</option><option>1 — Levemente espessado</option>
+              <option>2 — Pouco espessado (néctar)</option><option>3 — Moderadamente espessado (mel)</option>
+              <option>4 — Extremamente espessado (pudim)</option><option>Não aceita líquidos por via oral</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid full" style="margin-top:14px">
+          <div class="form-group">
+            <label>Observações sobre alimentação</label>
+            <textarea name="obs_alimentacao" placeholder="Preferências, recusas, estratégias já adotadas..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title">6. Observações Gerais</div>
+      <div class="form-section-body">
+        <div class="form-group">
+          <textarea name="observacoes" placeholder="Informações adicionais relevantes..." style="min-height:100px"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-zone">
+      <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Salvar Anamnese</button>
+      <p>Os dados são salvos com segurança. Verifique o código do participante antes de enviar.</p>
+    </div>
+  </form>
+</div>
+<footer class="site-footer">NEDD/UFF — Plataforma de Pesquisa Científica</footer>
+<script src="../js/app.js"></script>
+<script>
+  document.getElementById('dataAval').value = today();
+  async function loadSelects() {
+    try {
+      const { data: pesq } = await db().from('pesquisadores').select('id, nome, nivel').order('nome');
+      const sel = document.getElementById('selectPesq');
+      (pesq || []).forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = `${p.nome} (${p.nivel})`; sel.appendChild(o); });
+      const { data: est } = await db().from('estudos').select('id, titulo').order('titulo');
+      const selE = document.getElementById('selectEstudo');
+      (est || []).forEach(e => { const o = document.createElement('option'); o.value = e.id; o.textContent = e.titulo; selE.appendChild(o); });
+    } catch(e) {}
+  }
+  loadSelects();
+  const form = document.getElementById('anamneseForm');
+  form.addEventListener('input', () => updateProgress(form, document.getElementById('progressBar')));
+  form.addEventListener('change', () => updateProgress(form, document.getElementById('progressBar')));
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const missing = validateRequired(form);
+    if (missing.length) {
+      document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">Preencha os campos obrigatórios: <strong>${missing.join(', ')}</strong></div>`;
+      window.scrollTo({ top: 0, behavior: 'smooth' }); return;
+    }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    const data = collectForm(form);
+    if (Array.isArray(data.sintomas)) data.sintomas = data.sintomas.join('|');
+    try {
+      const { error } = await db().from('anamnese').insert([data]);
+      if (error) throw error;
+      document.getElementById('alertBox').innerHTML = `<div class="alert alert-success">✅ Anamnese salva! Código: <strong>${data.codigo_participante}</strong></div>`;
+      form.reset(); document.getElementById('dataAval').value = today();
+      document.getElementById('progressBar').style.width = '0%';
+      window.scrollTo({ top: 0, behavior: 'smooth' }); toast('Anamnese registrada com sucesso!');
+    } catch(err) {
+      document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">❌ Erro ao salvar: ${err.message}</div>`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally { btn.disabled = false; btn.textContent = 'Salvar Anamnese'; }
+  });
+</script>
+</body>
+</html>

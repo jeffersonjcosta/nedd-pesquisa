@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SWAL-QOL — NEDD/UFF</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <style>
+    .swal-item { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 10px; }
+    .swal-item p { font-size: 13px; margin-bottom: 10px; line-height: 1.5; }
+    .score-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+  </style>
+</head>
+<body class="form-page">
+<header class="site-header">
+  <a href="../index.html" class="logo">
+    <div class="logo-icon">N</div>
+    <div class="logo-text"><strong>NEDD / UFF</strong><span>Plataforma de Pesquisa</span></div>
+  </a>
+  <nav><a href="../index.html">← Voltar</a></nav>
+</header>
+<div class="form-container">
+  <div class="form-title">
+    <h1>📊 Qualidade de Vida — SWAL-QOL</h1>
+    <p>Instrumento de qualidade de vida relacionada à deglutição (adaptado ao português brasileiro)</p>
+    <div class="progress-bar"><div class="progress-fill" id="progressBar" style="width:0%"></div></div>
+  </div>
+  <div id="alertBox"></div>
+  <div class="form-card">
+    <div class="form-section-body">
+      <div class="alert alert-info">📌 Para cada afirmação, peça que o paciente escolha de 1 (concordo totalmente) a 5 (discordo totalmente).</div>
+    </div>
+  </div>
+  <form id="swalForm" novalidate>
+    <div class="form-card">
+      <div class="form-section-title">Identificação</div>
+      <div class="form-section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Código do Participante <span class="required">*</span></label>
+            <input type="text" name="codigo_participante" placeholder="NEDD-2026-XXXXX" required>
+          </div>
+          <div class="form-group">
+            <label>Data <span class="required">*</span></label>
+            <input type="date" name="data_avaliacao" id="dataAval" required>
+          </div>
+          <div class="form-group">
+            <label>Pesquisador</label>
+            <select name="pesquisador_id" id="selectPesq"><option value="">Selecione...</option></select>
+          </div>
+          <div class="form-group">
+            <label>Aplicação</label>
+            <select name="aplicacao">
+              <option>Inicial (T0)</option><option>Seguimento 1 (T1)</option>
+              <option>Seguimento 2 (T2)</option><option>Alta (T-final)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title secondary">Domínio 1 — Carga do Sintoma</div>
+      <div class="form-section-body">
+        <div class="swal-item">
+          <p><strong>1.</strong> Deglutir é um problema para mim.</p>
+          <div class="scale-group"><button type="button" class="scale-btn" data-name="d1_q1" data-value="1">1</button><button type="button" class="scale-btn" data-name="d1_q1" data-value="2">2</button><button type="button" class="scale-btn" data-name="d1_q1" data-value="3">3</button><button type="button" class="scale-btn" data-name="d1_q1" data-value="4">4</button><button type="button" class="scale-btn" data-name="d1_q1" data-value="5">5</button></div>
+          <div class="score-label"><span>Concordo totalmente</span><span>Discordo totalmente</span></div>
+        </div>
+        <div class="swal-item">
+          <p><strong>2.</strong> Minha dificuldade para deglutir limita minha vida social e pessoal.</p>
+          <div class="scale-group"><button type="button" class="scale-btn" data-name="d1_q2" data-value="1">1</button><button type="button" class="scale-btn" data-name="d1_q2" data-value="2">2</button><button type="button" class="scale-btn" data-name="d1_q2" data-value="3">3</button><button type="button" class="scale-btn" data-name="d1_q2" data-value="4">4</button><button type="button" class="scale-btn" data-name="d1_q2" data-value="5">5</button></div>
+          <div class="score-label"><span>Concordo totalmente</span><span>Discordo totalmente</span></div>
+        </div>
+        <div class="swal-item">
+          <p><strong>3.</strong> Minha dificuldade para deglutir me deixa deprimido.</p>
+          <div class="scale-group"><button type="button" class="scale-btn" data-name="d1_q3" data-value="1">1</button><button type="button" class="scale-btn" data-name="d1_q3" data-value="2">2</button><button type="button" class="scale-btn" data-name="d1_q3" data-value="3">3</button><button type="button" class="scale-btn" data-name="d1_q3" data-value="4">4</button><button type="button" class="scale-btn" data-name="d1_q3" data-value="5">5</button></div>
+          <div class="score-label"><span>Concordo totalmente</span><span>Discordo totalmente</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title secondary">Domínio 2 — Alimentação</div>
+      <div class="form-section-body">
+        <div class="swal-item">
+          <p><strong>4.</strong> Não consigo comer os alimentos que gostaria de comer.</p>
+          <div class="scale-group"><button type="button" class="scale-btn" data-name="d2_q1" data-value="1">1</button><button type="button" class="scale-btn" data-name="d2_q1" data-value="2">2</button><button type="button" class="scale-btn" data-name="d2_q1" data-value="3">3</button><button type="button" class="scale-btn" data-name="d2_q1" data-value="4">4</button><button type="button" class="scale-btn" data-name="d2_q1" data-value="5">5</button></div>
+          <div class="score-label"><span>Concordo totalmente</span><span>Discordo totalmente</span></div>
+        </div>
+        <div class="swal-item">
+          <p><strong>5.</strong> Preciso de um esforço extra para engolir.</p>
+          <div class="scale-group"><button type="button" class="scale-btn" data-name="d2_q2" data-value="1">1</button><button type="button" class="scale-btn" data-name="d2_q2" data-value="2">2</button><button type="button" class="scale-btn" data-name="d2_q2" data-value="3">3</button><button type="button" class="scale-btn" data-name="d2_q2" data-value="4">4</button><button type="button" class="scale-btn" data-name="d2_q2" data-value="5">5</button></div>
+          <div class="score-label"><span>Concordo totalmente</span><span>Discordo totalmente</span></div>
+        </div>
+        <div class="swal-item">
+          <p><strong>6.</strong> As refeições demoram mais do que eu gostaria.</p>
+          <div class="scale-group"><button type="button" class="scale-btn" data-name="d2_q3" data-value="1">1</button><button type="button" class="scale-btn" data-name="d2_q3" data-value="2">2</button><button type="button" class="scale-btn" data-name="d2_q3" data-value="3">3</button><button type="button" class="scale-btn" data-name="d2_q3" data-value="4">4</button><button type="button" class="scale-btn" data-name="d2_q3" data-value="5">5</button></div>
+          <div class="score-label"><span>Concordo totalmente</span><span>Discordo totalmente</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title secondary">Domínio 3 — Medo e Ansiedade</div>
+      <div class="form-section-body">
+        <div class="swal-item">
+          <p><strong>7.</strong> Tenho medo de me engasgar enquanto como.</p>
+          <div class="scale-group"><button type="button" class="scale-btn" data-name="d3_q1" data-value="1">1</button><button type="button" class="scale-btn" data-name="d3_q1" data-value="2">2</button><button type="button" class="scale-btn" data-name="d3_q1" data-value="3">3</button><button type="button" class="scale-btn" data-name="d3_q1" data-value="4">4</button><button type="button" class="scale-btn" data-name="d3_q1" data-value="5">5</button></div>
+          <div class="score-label"><span>Concordo totalmente</span><span>Discordo totalmente</span></div>
+        </div>
+        <div class="swal-item">
+          <p><strong>8.</strong> Nunca sei quando vou engasgar.</p>
+          <div class="scale-group"><button type="button" class="scale-btn" data-name="d3_q2" data-value="1">1</button><button type="button" class="scale-btn" data-name="d3_q2" data-value="2">2</button><button type="button" class="scale-btn" data-name="d3_q2" data-value="3">3</button><button type="button" class="scale-btn" data-name="d3_q2" data-value="4">4</button><button type="button" class="scale-btn" data-name="d3_q2" data-value="5">5</button></div>
+          <div class="score-label"><span>Concordo totalmente</span><span>Discordo totalmente</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title secondary">Domínio 4 — Convívio Social</div>
+      <div class="form-section-body">
+        <div class="swal-item">
+          <p><strong>9.</strong> Não gosto de comer com outras pessoas por causa da minha dificuldade para engolir.</p>
+          <div class="scale-group"><button type="button" class="scale-btn" data-name="d4_q1" data-value="1">1</button><button type="button" class="scale-btn" data-name="d4_q1" data-value="2">2</button><button type="button" class="scale-btn" data-name="d4_q1" data-value="3">3</button><button type="button" class="scale-btn" data-name="d4_q1" data-value="4">4</button><button type="button" class="scale-btn" data-name="d4_q1" data-value="5">5</button></div>
+          <div class="score-label"><span>Concordo totalmente</span><span>Discordo totalmente</span></div>
+        </div>
+        <div class="swal-item">
+          <p><strong>10.</strong> Sinto que sou um fardo para minha família por causa do jeito que me alimento.</p>
+          <div class="scale-group"><button type="button" class="scale-btn" data-name="d4_q2" data-value="1">1</button><button type="button" class="scale-btn" data-name="d4_q2" data-value="2">2</button><button type="button" class="scale-btn" data-name="d4_q2" data-value="3">3</button><button type="button" class="scale-btn" data-name="d4_q2" data-value="4">4</button><button type="button" class="scale-btn" data-name="d4_q2" data-value="5">5</button></div>
+          <div class="score-label"><span>Concordo totalmente</span><span>Discordo totalmente</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title">Pontuação Calculada</div>
+      <div class="form-section-body">
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value" id="scoreTotal">—</div><div class="stat-label">Total (10–50)</div></div>
+          <div class="stat-card"><div class="stat-icon">%</div><div class="stat-value" id="scorePct">—</div><div class="stat-label">% do máximo</div></div>
+          <div class="stat-card"><div class="stat-icon">🔖</div><div class="stat-value" id="scoreClass" style="font-size:14px">—</div><div class="stat-label">Classificação</div></div>
+        </div>
+        <input type="hidden" name="pontuacao_total" id="hiddenScore">
+        <input type="hidden" name="pontuacao_pct" id="hiddenPct">
+        <div class="form-group" style="margin-top:16px">
+          <label>Observações</label>
+          <textarea name="observacoes" placeholder="Informações relevantes sobre a aplicação..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-zone">
+      <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Salvar SWAL-QOL</button>
+    </div>
+  </form>
+</div>
+<footer class="site-footer">NEDD/UFF — Plataforma de Pesquisa Científica</footer>
+<script src="../js/app.js"></script>
+<script>
+  document.getElementById('dataAval').value = today();
+  async function loadSelects() {
+    try {
+      const { data } = await db().from('pesquisadores').select('id, nome, nivel').order('nome');
+      const sel = document.getElementById('selectPesq');
+      (data || []).forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = `${p.nome} (${p.nivel})`; sel.appendChild(o); });
+    } catch(e) {}
+  }
+  loadSelects();
+  const questions = ['d1_q1','d1_q2','d1_q3','d2_q1','d2_q2','d2_q3','d3_q1','d3_q2','d4_q1','d4_q2'];
+  function calcScore() {
+    let total = 0, answered = 0;
+    questions.forEach(q => { const btn = document.querySelector(`.scale-btn.selected[data-name="${q}"]`); if (btn) { total += parseInt(btn.dataset.value); answered++; } });
+    if (!answered) return;
+    const pct = Math.round((total / (questions.length * 5)) * 100);
+    document.getElementById('scoreTotal').textContent = total;
+    document.getElementById('scorePct').textContent = pct + '%';
+    document.getElementById('hiddenScore').value = total;
+    document.getElementById('hiddenPct').value = pct;
+    document.getElementById('scoreClass').textContent = pct >= 80 ? 'Boa QV' : pct >= 60 ? 'QV moderada' : pct >= 40 ? 'QV comprometida' : 'QV gravemente afetada';
+  }
+  document.addEventListener('click', e => { if (e.target.closest('.scale-btn')) setTimeout(calcScore, 50); });
+  document.getElementById('swalForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const missing = validateRequired(e.target);
+    if (missing.length) { document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">Preencha: <strong>${missing.join(', ')}</strong></div>`; window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    const data = collectForm(e.target);
+    questions.forEach(q => { const b = document.querySelector(`.scale-btn.selected[data-name="${q}"]`); data[q] = b ? parseInt(b.dataset.value) : null; });
+    try {
+      const { error } = await db().from('swal_qol').insert([data]);
+      if (error) throw error;
+      document.getElementById('alertBox').innerHTML = `<div class="alert alert-success">✅ SWAL-QOL salvo!</div>`;
+      e.target.reset(); document.getElementById('dataAval').value = today();
+      document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+      ['scoreTotal','scorePct','scoreClass'].forEach(id => document.getElementById(id).textContent = '—');
+      window.scrollTo({ top: 0, behavior: 'smooth' }); toast('SWAL-QOL registrado!');
+    } catch(err) { document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">❌ Erro: ${err.message}</div>`; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    finally { btn.disabled = false; btn.textContent = 'Salvar SWAL-QOL'; }
+  });
+</script>
+</body>
+</html>

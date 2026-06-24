@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo — NEDD/UFF</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <style>
+    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 60px); }
+    .sidebar { background: var(--primary); padding: 24px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
+    .sidebar-section { padding: 0 16px; margin-bottom: 24px; }
+    .sidebar-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 8px; padding: 0 8px; }
+    .sidebar a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 6px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 13px; transition: all 0.15s; margin-bottom: 2px; }
+    .sidebar a:hover, .sidebar a.active { background: rgba(255,255,255,0.12); color: white; }
+    .admin-content { padding: 28px; overflow-x: hidden; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; padding: 14px 16px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); }
+    .filter-bar input, .filter-bar select { width: auto; flex: 1; min-width: 140px; }
+    .login-overlay { position: fixed; inset: 0; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 999; }
+    .login-box { background: white; border-radius: 12px; padding: 40px; width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center; }
+    .login-box h2 { font-size: 18px; color: var(--primary); margin-bottom: 6px; }
+    .login-box p { color: var(--text-muted); font-size: 13px; margin-bottom: 24px; }
+    .login-box .form-group { text-align: left; margin-bottom: 14px; }
+    @media (max-width: 700px) { .admin-layout { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } }
+  </style>
+</head>
+<body>
+
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div style="font-size:40px;margin-bottom:12px">🔬</div>
+    <h2>NEDD/UFF — Painel Admin</h2>
+    <p>Acesso restrito a pesquisadores cadastrados</p>
+    <div id="loginAlert"></div>
+    <div class="form-group"><label>E-mail</label><input type="email" id="loginEmail" placeholder="usuario@id.uff.br"></div>
+    <div class="form-group"><label>Senha</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+    <button class="btn btn-primary btn-block btn-lg" id="loginBtn" onclick="doLogin()">Entrar</button>
+    <p style="margin-top:16px;font-size:12px;color:var(--text-muted)">Primeiro acesso? Peça ao administrador para criar sua conta no Supabase.</p>
+  </div>
+</div>
+
+<header class="site-header">
+  <a href="../index.html" class="logo">
+    <div class="logo-icon">N</div>
+    <div class="logo-text"><strong>NEDD / UFF</strong><span>Painel Administrativo</span></div>
+  </a>
+  <nav>
+    <span id="userLabel" style="color:rgba(255,255,255,0.7);font-size:13px"></span>
+    <a href="#" onclick="doLogout()" style="margin-left:16px">Sair</a>
+  </nav>
+</header>
+
+<div class="admin-layout">
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Visão geral</div>
+      <a href="#" class="active" onclick="showPanel('dashboard',this)">📊 Dashboard</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Dados coletados</div>
+      <a href="#" onclick="showPanel('anamnese',this)">📋 Anamneses</a>
+      <a href="#" onclick="showPanel('degluticao',this)">🔬 Avaliações</a>
+      <a href="#" onclick="showPanel('swal',this)">📊 SWAL-QOL</a>
+      <a href="#" onclick="showPanel('followup',this)">🔄 Seguimentos</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Cadastros</div>
+      <a href="#" onclick="showPanel('pesquisadores',this)">👤 Pesquisadores</a>
+      <a href="#" onclick="showPanel('estudos',this)">📁 Estudos</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Exportação</div>
+      <a href="#" onclick="showPanel('exportar',this)">⬇️ Exportar CSV</a>
+    </div>
+  </nav>
+
+  <main class="admin-content">
+
+    <div class="panel active" id="panel-dashboard">
+      <h2 style="font-size:20px;color:var(--primary);margin-bottom:20px">Dashboard</h2>
+      <div class="stats-grid" id="statsGrid"><div class="stat-card"><div class="spinner"></div></div></div>
+      <div class="card" style="margin-top:24px">
+        <div class="card-header"><h2>Últimas Anamneses Registradas</h2></div>
+        <div class="card-body" style="padding:0">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>Código</th><th>Data</th><th>Diagnóstico</th><th>Via</th></tr></thead>
+              <tbody id="recentAnamnese"><tr class="empty-row"><td colspan="4"><div class="spinner"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-anamnese">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h2 style="font-size:20px;color:var(--primary)">Anamneses Fonoaudiológicas</h2>
+        <button class="btn btn-secondary btn-sm" onclick="exportTable('anamnese','anamnese_nedd.csv')">⬇ Exportar CSV</button>
+      </div>
+      <div class="filter-bar">
+        <input type="text" placeholder="Buscar por código ou diagnóstico..." oninput="filterRows('tbAnamnese',this.value)">
+        <select onchange="loadAnamnese(this.value)"><option value="50">Últimas 50</option><option value="100">Últimas 100</option><option value="999">Todas</option></select>
+      </div>
+      <div class="card">
+        <div class="table-wrapper">
+          <table class="data-table" id="tbAnamnese">
+            <thead><tr><th>Código</th><th>Data</th><th>Idade</th><th>Sexo</th><th>Diagnóstico</th><th>Via Alimentar</th></tr></thead>
+            <tbody id="bodyAnamnese"><tr class="empty-row"><td colspan="6"><div class="spinner"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-degluticao">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h2 style="font-size:20px;color:var(--primary)">Avaliações Clínicas da Deglutição</h2>
+        <button class="btn btn-secondary btn-sm" onclick="exportTable('avaliacao_degluticao','avaliacao_degluticao_nedd.csv')">⬇ Exportar CSV</button>
+      </div>
+      <div class="card">
+        <div class="table-wrapper">
+          <table class="data-table" id="tbDegluticao">
+            <thead><tr><th>Código</th><th>Data</th><th>Classificação Disfagia</th><th>Fase Afetada</th><th>Via Recomendada</th><th>SpO₂ antes</th><th>SpO₂ após</th></tr></thead>
+            <tbody id="bodyDegluticao"><tr class="empty-row"><td colspan="7"><div class="spinner"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-swal">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h2 style="font-size:20px;color:var(--primary)">SWAL-QOL</h2>
+        <button class="btn btn-secondary btn-sm" onclick="exportTable('swal_qol','swal_qol_nedd.csv')">⬇ Exportar CSV</button>
+      </div>
+      <div class="card">
+        <div class="table-wrapper">
+          <table class="data-table" id="tbSwal">
+            <thead><tr><th>Código</th><th>Data</th><th>Aplicação</th><th>Pontuação</th><th>% do máximo</th></tr></thead>
+            <tbody id="bodySwal"><tr class="empty-row"><td colspan="5"><div class="spinner"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-followup">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h2 style="font-size:20px;color:var(--primary)">Seguimentos / Reavaliações</h2>
+        <button class="btn btn-secondary btn-sm" onclick="exportTable('follow_up','follow_up_nedd.csv')">⬇ Exportar CSV</button>
+      </div>
+      <div class="card">
+        <div class="table-wrapper">
+          <table class="data-table" id="tbFollowup">
+            <thead><tr><th>Código</th><th>Data</th><th>Ponto</th><th>Evolução</th><th>Via atual</th><th>Sessões</th></tr></thead>
+            <tbody id="bodyFollowup"><tr class="empty-row"><td colspan="6"><div class="spinner"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-pesquisadores">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h2 style="font-size:20px;color:var(--primary)">Pesquisadores</h2>
+        <a href="../forms/pesquisador.html" class="btn btn-primary btn-sm">+ Adicionar</a>
+      </div>
+      <div class="card">
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead><tr><th>Nome</th><th>E-mail</th><th>Nível</th><th>Área</th><th>Status</th></tr></thead>
+            <tbody id="bodyPesq"><tr class="empty-row"><td colspan="5"><div class="spinner"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-estudos">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h2 style="font-size:20px;color:var(--primary)">Estudos</h2>
+        <a href="../forms/estudo.html" class="btn btn-primary btn-sm">+ Adicionar</a>
+      </div>
+      <div class="card">
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead><tr><th>Título</th><th>Tipo</th><th>CAAE</th><th>Status</th><th>N previsto</th></tr></thead>
+            <tbody id="bodyEstudos"><tr class="empty-row"><td colspan="5"><div class="spinner"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-exportar">
+      <h2 style="font-size:20px;color:var(--primary);margin-bottom:20px">Exportar Dados para Análise</h2>
+      <div class="alert alert-info" style="margin-bottom:24px">📌 Arquivos CSV com separador <strong>ponto e vírgula (;)</strong> e codificação UTF-8 — compatíveis com Excel, Jamovi e JASP.</div>
+      <div class="form-grid-home">
+        <div class="card" style="padding:24px"><h3 style="color:var(--primary);margin-bottom:8px">📋 Anamneses</h3><p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Todos os registros de histórico clínico</p><button class="btn btn-primary btn-block" onclick="exportTable('anamnese','anamnese_nedd.csv')">⬇ Baixar CSV</button></div>
+        <div class="card" style="padding:24px"><h3 style="color:var(--primary);margin-bottom:8px">🔬 Avaliações de Deglutição</h3><p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Estruturas orofaciais e resultados IDDSI</p><button class="btn btn-primary btn-block" onclick="exportTable('avaliacao_degluticao','avaliacao_degluticao_nedd.csv')">⬇ Baixar CSV</button></div>
+        <div class="card" style="padding:24px"><h3 style="color:var(--primary);margin-bottom:8px">📊 SWAL-QOL</h3><p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Pontuações de qualidade de vida</p><button class="btn btn-primary btn-block" onclick="exportTable('swal_qol','swal_qol_nedd.csv')">⬇ Baixar CSV</button></div>
+        <div class="card" style="padding:24px"><h3 style="color:var(--primary);margin-bottom:8px">🔄 Seguimentos</h3><p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Registros de evolução longitudinal</p><button class="btn btn-primary btn-block" onclick="exportTable('follow_up','follow_up_nedd.csv')">⬇ Baixar CSV</button></div>
+        <div class="card" style="padding:24px"><h3 style="color:var(--primary);margin-bottom:8px">📦 Exportar Tudo</h3><p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Todas as tabelas de uma vez</p><button class="btn btn-secondary btn-block" onclick="exportAll()">⬇ Exportar Tudo</button></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+async function checkSession() {
+  const { data: { session } } = await db().auth.getSession();
+  if (session) { document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('userLabel').textContent = session.user.email; loadDashboard(); }
+}
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Entrando...';
+  const { error } = await db().auth.signInWithPassword({ email, password: pass });
+  if (error) { document.getElementById('loginAlert').innerHTML = `<div class="alert alert-danger">${error.message}</div>`; btn.disabled = false; btn.textContent = 'Entrar'; }
+  else { document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('userLabel').textContent = email; loadDashboard(); }
+}
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+async function doLogout() { await db().auth.signOut(); location.reload(); }
+
+const loaders = { anamnese: loadAnamnese, degluticao: loadDegluticao, swal: loadSwal, followup: loadFollowup, pesquisadores: loadPesquisadores, estudos: loadEstudos };
+function showPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  if (loaders[name]) loaders[name]();
+}
+
+async function loadDashboard() {
+  const tables = ['anamnese','avaliacao_degluticao','swal_qol','follow_up','pesquisadores','estudos'];
+  const counts = await Promise.all(tables.map(t => db().from(t).select('*', { count: 'exact', head: true })));
+  const labels = ['Anamneses','Avaliações','SWAL-QOL','Seguimentos','Pesquisadores','Estudos'];
+  const icons = ['📋','🔬','📊','🔄','👤','📁'];
+  document.getElementById('statsGrid').innerHTML = counts.map((r,i) => `<div class="stat-card"><div class="stat-icon">${icons[i]}</div><div class="stat-value">${r.count ?? '—'}</div><div class="stat-label">${labels[i]}</div></div>`).join('');
+  const { data } = await db().from('anamnese').select('codigo_participante,data_avaliacao,diagnostico_principal,via_alimentacao').order('created_at', { ascending: false }).limit(8);
+  document.getElementById('recentAnamnese').innerHTML = (data || []).length
+    ? data.map(r => `<tr><td><code>${r.codigo_participante}</code></td><td>${formatDate(r.data_avaliacao)}</td><td>${r.diagnostico_principal || '—'}</td><td style="font-size:12px">${r.via_alimentacao || '—'}</td></tr>`).join('')
+    : '<tr class="empty-row"><td colspan="4">Nenhum registro ainda.</td></tr>';
+}
+
+async function loadAnamnese(limit = 50) {
+  const { data } = await db().from('anamnese').select('*').order('created_at', { ascending: false }).limit(limit);
+  document.getElementById('bodyAnamnese').innerHTML = (data || []).length
+    ? data.map(r => `<tr><td><code>${r.codigo_participante}</code></td><td>${formatDate(r.data_avaliacao)}</td><td>${r.idade ?? '—'}</td><td>${r.sexo || '—'}</td><td>${r.diagnostico_principal || '—'}</td><td style="font-size:12px">${r.via_alimentacao || '—'}</td></tr>`).join('')
+    : '<tr class="empty-row"><td colspan="6">Nenhum registro encontrado.</td></tr>';
+}
+async function loadDegluticao() {
+  const { data } = await db().from('avaliacao_degluticao').select('*').order('created_at', { ascending: false }).limit(50);
+  document.getElementById('bodyDegluticao').innerHTML = (data || []).length
+    ? data.map(r => `<tr><td><code>${r.codigo_participante}</code></td><td>${formatDate(r.data_avaliacao)}</td><td>${r.classificacao_disfagia || '—'}</td><td>${r.fase_afetada || '—'}</td><td style="font-size:12px">${r.via_recomendada || '—'}</td><td>${r.spo2_antes ? r.spo2_antes+'%' : '—'}</td><td>${r.spo2_apos ? r.spo2_apos+'%' : '—'}</td></tr>`).join('')
+    : '<tr class="empty-row"><td colspan="7">Nenhum registro encontrado.</td></tr>';
+}
+async function loadSwal() {
+  const { data } = await db().from('swal_qol').select('*').order('created_at', { ascending: false }).limit(50);
+  document.getElementById('bodySwal').innerHTML = (data || []).length
+    ? data.map(r => `<tr><td><code>${r.codigo_participante}</code></td><td>${formatDate(r.data_avaliacao)}</td><td>${r.aplicacao || '—'}</td><td><strong>${r.pontuacao_total ?? '—'}</strong></td><td>${r.pontuacao_pct ? r.pontuacao_pct+'%' : '—'}</td></tr>`).join('')
+    : '<tr class="empty-row"><td colspan="5">Nenhum registro encontrado.</td></tr>';
+}
+async function loadFollowup() {
+  const { data } = await db().from('follow_up').select('*').order('created_at', { ascending: false }).limit(50);
+  document.getElementById('bodyFollowup').innerHTML = (data || []).length
+    ? data.map(r => `<tr><td><code>${r.codigo_participante}</code></td><td>${formatDate(r.data_avaliacao)}</td><td>${r.ponto_seguimento || '—'}</td><td>${r.evolucao_geral || '—'}</td><td style="font-size:12px">${r.via_alimentacao_atual || '—'}</td><td>${r.n_sessoes ?? '—'}</td></tr>`).join('')
+    : '<tr class="empty-row"><td colspan="6">Nenhum registro encontrado.</td></tr>';
+}
+async function loadPesquisadores() {
+  const { data } = await db().from('pesquisadores').select('*').order('nome');
+  document.getElementById('bodyPesq').innerHTML = (data || []).length
+    ? data.map(r => `<tr><td><strong>${r.nome}</strong></td><td style="font-size:12px">${r.email || '—'}</td><td>${r.nivel || '—'}</td><td>${r.area || '—'}</td><td><span class="badge ${r.ativo ? 'badge-success' : 'badge-muted'}">${r.ativo ? 'Ativo' : 'Egresso'}</span></td></tr>`).join('')
+    : '<tr class="empty-row"><td colspan="5">Nenhum pesquisador cadastrado.</td></tr>';
+}
+async function loadEstudos() {
+  const { data } = await db().from('estudos').select('*').order('created_at', { ascending: false });
+  const colors = { 'Em andamento': 'badge-primary', 'Em coleta de dados': 'badge-warning', 'Concluído': 'badge-success', 'Suspenso': 'badge-danger' };
+  document.getElementById('bodyEstudos').innerHTML = (data || []).length
+    ? data.map(r => `<tr><td><strong>${r.titulo}</strong></td><td style="font-size:12px">${r.tipo || '—'}</td><td style="font-size:12px">${r.caae || '—'}</td><td><span class="badge ${colors[r.status] || 'badge-muted'}">${r.status || '—'}</span></td><td>${r.n_previsto || '—'}</td></tr>`).join('')
+    : '<tr class="empty-row"><td colspan="5">Nenhum estudo cadastrado.</td></tr>';
+}
+
+function filterRows(tableId, query) {
+  const rows = document.getElementById(tableId).querySelectorAll('tbody tr:not(.empty-row)');
+  const q = query.toLowerCase();
+  rows.forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+}
+
+async function exportTable(table, filename) {
+  toast('Preparando exportação...', 'success', 2000);
+  const { data, error } = await db().from(table).select('*').order('created_at', { ascending: false });
+  if (error || !data) { toast('Erro ao exportar: ' + (error?.message || 'sem dados'), 'error'); return; }
+  exportCSV(data, filename);
+}
+async function exportAll() {
+  const tables = [['anamnese','anamnese_nedd.csv'],['avaliacao_degluticao','avaliacao_degluticao_nedd.csv'],['swal_qol','swal_qol_nedd.csv'],['follow_up','follow_up_nedd.csv'],['pesquisadores','pesquisadores_nedd.csv'],['estudos','estudos_nedd.csv']];
+  toast('Exportando todas as tabelas...', 'success', 3000);
+  for (const [t, f] of tables) { await new Promise(r => setTimeout(r, 600)); await exportTable(t, f); }
+}
+
+checkSession();
+</script>
+</body>
+</html>
