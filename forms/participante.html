@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Participante — NEDD/UFF</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+</head>
+<body class="form-page">
+<header class="site-header">
+  <a href="../index.html" class="logo">
+    <div class="logo-icon">N</div>
+    <div class="logo-text"><strong>NEDD / UFF</strong><span>Plataforma de Pesquisa</span></div>
+  </a>
+  <nav><a href="../index.html">← Voltar</a></nav>
+</header>
+<div class="form-container" style="max-width:520px">
+  <div class="form-title">
+    <h1>🙋 Cadastro de Participante</h1>
+    <p>Registre o participante <strong>uma única vez</strong> para gerar o código que será usado em todos os formulários</p>
+  </div>
+  <div id="alertBox"></div>
+  <form id="partForm" novalidate>
+    <div class="form-card">
+      <div class="form-section-title">Dados Mínimos de Identificação</div>
+      <div class="form-section-body">
+        <div class="form-grid full">
+          <div class="form-group">
+            <label>Iniciais do Participante <span class="required">*</span></label>
+            <input type="text" name="iniciais" placeholder="Ex: J.S." required maxlength="10" style="text-transform:uppercase">
+          </div>
+          <div class="form-group">
+            <label>Data de Nascimento <span class="required">*</span></label>
+            <input type="date" name="data_nascimento" required>
+          </div>
+          <div class="form-group">
+            <label>Sexo <span class="required">*</span></label>
+            <select name="sexo" required>
+              <option value="">Selecione...</option>
+              <option>Masculino</option>
+              <option>Feminino</option>
+              <option>Outro</option>
+            </select>
+          </div>
+        </div>
+        <div style="background:var(--accent);border:1px solid #b3d4ef;border-radius:var(--radius);padding:12px 14px;font-size:13px;color:var(--primary);margin-top:8px">
+          ℹ️ Não registre nome completo. As iniciais + data de nascimento permitem identificar o participante sem expor dados pessoais.
+        </div>
+      </div>
+    </div>
+    <div class="submit-zone">
+      <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Gerar Código do Participante</button>
+    </div>
+  </form>
+
+  <!-- Código gerado -->
+  <div id="codigoBox" style="display:none" class="form-card" style="margin-top:20px">
+    <div class="form-section-body" style="text-align:center;padding:24px">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Código gerado com sucesso:</p>
+      <div id="codigoGerado" style="font-size:32px;font-weight:800;color:var(--primary);letter-spacing:2px;margin:12px 0"></div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Anote este código — ele será usado em todos os formulários clínicos deste participante.</p>
+      <button onclick="copiarCodigo()" class="btn btn-secondary">📋 Copiar código</button>
+    </div>
+  </div>
+
+  <div class="form-card" style="margin-top:24px">
+    <div class="card-header"><h2>Participantes Cadastrados</h2></div>
+    <div class="card-body" style="padding:0">
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead><tr><th>Código</th><th>Iniciais</th><th>Sexo</th><th>Nascimento</th></tr></thead>
+          <tbody id="partBody"><tr class="empty-row"><td colspan="4">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="site-footer">NEDD/UFF — Plataforma de Pesquisa Científica</footer>
+<script src="../js/app.js"></script>
+<script>
+  async function loadPartic() {
+    try {
+      const { data } = await db().from('participantes').select('*').order('created_at', { ascending: false });
+      const tbody = document.getElementById('partBody');
+      if (!data || !data.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Nenhum participante cadastrado.</td></tr>'; return; }
+      tbody.innerHTML = data.map(p => `<tr>
+        <td><strong>${p.codigo}</strong></td>
+        <td>${p.iniciais || '—'}</td>
+        <td>${p.sexo || '—'}</td>
+        <td>${formatDate(p.data_nascimento)}</td>
+      </tr>`).join('');
+    } catch(e) { document.getElementById('partBody').innerHTML = '<tr class="empty-row"><td colspan="4">Erro ao carregar.</td></tr>'; }
+  }
+
+  function copiarCodigo() {
+    const codigo = document.getElementById('codigoGerado').textContent;
+    navigator.clipboard.writeText(codigo).then(() => toast('Código copiado!')).catch(() => toast('Selecione e copie manualmente.', 'error'));
+  }
+
+  async function gerarCodigoUnico() {
+    const year = new Date().getFullYear();
+    for (let i = 0; i < 10; i++) {
+      const num = String(Math.floor(Math.random() * 99999) + 1).padStart(5, '0');
+      const codigo = `NEDD-${year}-${num}`;
+      const { data } = await db().from('participantes').select('id').eq('codigo', codigo);
+      if (!data || !data.length) return codigo;
+    }
+    return `NEDD-${year}-${Date.now().toString().slice(-5)}`;
+  }
+
+  loadPartic();
+
+  document.getElementById('partForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const missing = validateRequired(e.target);
+    if (missing.length) { document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">Preencha: <strong>${missing.join(', ')}</strong></div>`; return; }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Gerando código...';
+    try {
+      const data = collectForm(e.target);
+      data.codigo = await gerarCodigoUnico();
+      const { error } = await db().from('participantes').insert([data]);
+      if (error) throw error;
+      document.getElementById('alertBox').innerHTML = '';
+      document.getElementById('codigoGerado').textContent = data.codigo;
+      document.getElementById('codigoBox').style.display = 'block';
+      document.getElementById('codigoBox').scrollIntoView({ behavior: 'smooth' });
+      e.target.reset(); loadPartic(); toast('Participante cadastrado!');
+    } catch(err) { document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">❌ Erro: ${err.message}</div>`; }
+    finally { btn.disabled = false; btn.textContent = 'Gerar Código do Participante'; }
+  });
+</script>
+</body>
+</html>

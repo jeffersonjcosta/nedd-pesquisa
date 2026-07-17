@@ -100,6 +100,35 @@ document.addEventListener('click', e => {
   btn.classList.add('selected');
 });
 
+async function loadParticipantes(selectId) {
+  try {
+    const { data } = await db().from('participantes').select('*').order('codigo');
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Selecione o participante...</option>';
+    (data || []).forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.codigo;
+      o.textContent = `${p.codigo}${p.iniciais ? ' — ' + p.iniciais : ''}${p.sexo ? ' (' + p.sexo + ')' : ''}`;
+      sel.appendChild(o);
+    });
+  } catch(e) {}
+}
+
+async function loadPesquisadores(selectId) {
+  try {
+    const { data } = await db().from('pesquisadores').select('id, nome, nivel').order('nome');
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    (data || []).forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.id;
+      o.textContent = `${p.nome} (${p.nivel})`;
+      sel.appendChild(o);
+    });
+  } catch(e) {}
+}
+
 function updateProgress(formEl, barEl) {
   const all = formEl.querySelectorAll('[name]');
   let filled = 0;

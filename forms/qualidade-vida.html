@@ -39,8 +39,9 @@
       <div class="form-section-body">
         <div class="form-grid">
           <div class="form-group">
-            <label>Código do Participante <span class="required">*</span></label>
-            <input type="text" name="codigo_participante" placeholder="NEDD-2026-XXXXX" required>
+            <label>Participante <span class="required">*</span></label>
+            <select name="codigo_participante" id="selectParticipante" required></select>
+            <small style="color:var(--text-muted)">Não encontrou? <a href="participante.html" target="_blank">Cadastrar novo →</a></small>
           </div>
           <div class="form-group">
             <label>Data <span class="required">*</span></label>
@@ -161,14 +162,8 @@
 <script src="../js/app.js"></script>
 <script>
   document.getElementById('dataAval').value = today();
-  async function loadSelects() {
-    try {
-      const { data } = await db().from('pesquisadores').select('id, nome, nivel').order('nome');
-      const sel = document.getElementById('selectPesq');
-      (data || []).forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = `${p.nome} (${p.nivel})`; sel.appendChild(o); });
-    } catch(e) {}
-  }
-  loadSelects();
+  loadParticipantes('selectParticipante');
+  loadPesquisadores('selectPesq');
   const questions = ['d1_q1','d1_q2','d1_q3','d2_q1','d2_q2','d2_q3','d3_q1','d3_q2','d4_q1','d4_q2'];
   function calcScore() {
     let total = 0, answered = 0;
